@@ -1,3 +1,7 @@
+Closes #
+
+<!-- Put the issue number after the #. Merging this PR will then close that issue. -->
+
 ## What changed and why
 
 ## How I tested it

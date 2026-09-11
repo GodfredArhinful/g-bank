@@ -31,6 +31,7 @@
 - **Owner: Claude** tasks: Claude does them, G reviews the pull request and merges it.
 - **Owner: G** tasks: each one starts with a short **Concept** section. The tests are given in full, because the tests *are* the specification. G writes the implementation. A complete **reference solution** is folded underneath: open it only after a real attempt, or when stuck for more than 15 minutes.
 - Suggested sessions at about 5 hours a week: Session 1 = Tasks 1 and 2. Session 2 = Task 3. Session 3 = Task 4. Session 4 = Task 5. Session 5 = Task 6.
+- **Issues (decision D21):** each remaining task has a GitHub issue: Task 2 Step 6 = #8, Task 3 = #9, Task 4 = #10, Task 5 = #11, Task 6 = #12. The branch names and commit commands below already use those numbers. The `-m "Closes #N"` in each commit becomes the PR description (through `gh pr create --fill`), so merging the PR closes its issue.
 
 ## Files at the end of M0
 
@@ -498,7 +499,7 @@ Make a branch, add an unused variable to `shared/src/index.ts` (`const oops = 1;
 - [ ] **Step 1: Branch**
 
 ```bash
-git switch -c feat/config
+git switch -c feat/9-config
 ```
 
 - [ ] **Step 2: Write the failing test**
@@ -589,8 +590,8 @@ Expected: lint and typecheck silent, `Tests  7 passed (7)`.
 
 ```bash
 git add server
-git commit -m "feat: validate environment variables at startup"
-git push -u origin feat/config
+git commit -m "feat: validate environment variables at startup" -m "Closes #9"
+git push -u origin feat/9-config
 gh pr create --fill
 gh pr checks --watch
 ```
@@ -626,7 +627,7 @@ When green: squash and merge on GitHub, then `git switch main && git pull`.
 - [ ] **Step 1: Branch**
 
 ```bash
-git switch -c feat/health-check
+git switch -c feat/10-health-check
 ```
 
 - [ ] **Step 2: Write the failing test**
@@ -813,8 +814,8 @@ Expected: `Tests  10 passed (10)`
 
 ```bash
 git add server
-git commit -m "feat: add health check with request ids and structured logs"
-git push -u origin feat/health-check
+git commit -m "feat: add health check with request ids and structured logs" -m "Closes #10"
+git push -u origin feat/10-health-check
 gh pr create --fill
 gh pr checks --watch
 ```
@@ -851,7 +852,7 @@ Express 5 sends anything thrown in a route to the **error handler**: the middlew
 - [ ] **Step 1: Branch**
 
 ```bash
-git switch -c feat/error-handling
+git switch -c feat/11-error-handling
 ```
 
 - [ ] **Step 2: Write the failing tests**
@@ -1076,8 +1077,8 @@ Expected: `Test Files  4 passed (4)`, `Tests  15 passed (15)`
 
 ```bash
 git add server
-git commit -m "feat: return every error in the standard error shape"
-git push -u origin feat/error-handling
+git commit -m "feat: return every error in the standard error shape" -m "Closes #11"
+git push -u origin feat/11-error-handling
 gh pr create --fill
 gh pr checks --watch
 ```
@@ -1144,7 +1145,7 @@ In GitHub: repo **Settings** → **Secrets and variables** → **Actions** → *
 - [ ] **Step 5: Add the deploy job and the live URL**
 
 ```bash
-git switch -c feat/cd
+git switch -c feat/12-cd
 ```
 
 Add this job to the end of `.github/workflows/ci.yml`, indented under `jobs:` at the same level as `check:`:
@@ -1182,8 +1183,8 @@ Expected: `All matched files use Prettier code style!`
 
 ```bash
 git add .github docs/README.md
-git commit -m "feat: deploy to Render from CI after checks pass"
-git push -u origin feat/cd
+git commit -m "feat: deploy to Render from CI after checks pass" -m "Closes #12"
+git push -u origin feat/12-cd
 gh pr create --fill
 gh pr checks --watch
 ```
