@@ -62,6 +62,11 @@
 - **TypeScript strict mode** everywhere. `npm run typecheck` checks all three workspaces.
 - **ESLint** (flat config + typescript-eslint) catches likely bugs.
 - **Prettier** formats code automatically, so reviews are never about formatting.
+- **Git hooks** (Husky + lint-staged) run checks on your laptop before code leaves it:
+  - **pre-commit:** ESLint and Prettier fix and check only the files you're committing. Takes a few seconds.
+  - **pre-push:** typecheck and the full test suite.
+
+  Hooks give fast feedback, but anyone can skip them (`git commit --no-verify`), so CI is still the check that blocks merging.
 
 **Scripts**
 
@@ -69,6 +74,7 @@
 |---|---|
 | `npm run dev` | Server and web together, reload on save |
 | `npm test` | All tests |
+| `npm run check` | Everything CI checks, in the same order: format, lint, typecheck, tests |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
 | `npm run typecheck` | `tsc --noEmit` on every workspace |
 | `npm run build` | Build the web app into `web/dist` |
