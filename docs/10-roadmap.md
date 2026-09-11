@@ -15,7 +15,7 @@ timeline
         M4 React foundations, 2 to 3 weeks : React refresher : Design pass and app shell : Auth pages
         M5 Banking UI, 2 to 3 weeks : Dashboard and history : Deposit and transfer flow : Settings
     section Launch
-        M6 Harden and launch, 1 to 2 weeks : Turnstile : Security checklist : README and share
+        M6 Harden and launch, 1 to 2 weeks : Turnstile : Security checklist : Load test : README and share
 ```
 
 What depends on what:
@@ -59,9 +59,9 @@ M4 only needs auth (M2), so if backend work gets tiring you can switch to M4 and
 | 6 | First test: `GET /health` with Vitest + Supertest | You |
 | 7 | Branch protection and first pull request (the repo itself was created on 2026-09-10) | You, guided |
 | 8 | GitHub Actions CI | Claude writes it, you read it line by line |
-| 9 | Deploy to Render (no database yet) | You click, Claude guides |
+| 9 | Deploy to Render (no database yet), plus a `deploy` job in CI so every green merge to `main` ships | You click, Claude guides |
 
-**Done when:** your Render URL returns `{"status":"ok"}`, CI is green, and the first PR is merged.
+**Done when:** your Render URL returns `{"status":"ok"}`, CI is green, and merging a PR deploys automatically through the CI `deploy` job.
 
 ## M1. Database and ledger core
 **2 to 3 weeks.** Goal: money can be stored and moved correctly in code, proven by tests. No HTTP or login yet.
@@ -103,7 +103,7 @@ M4 only needs auth (M2), so if backend work gets tiring you can switch to M4 and
 ## M3. Money API
 **2 to 3 weeks.** Goal: the full banking API from the contract, safe under concurrency.
 
-**You'll learn:** REST design, validation, row locks, isolation levels, deadlocks, idempotency, cursor pagination, OpenAPI.
+**You'll learn:** REST design, validation, row locks, isolation levels, deadlocks, idempotency, cursor pagination, OpenAPI, load testing.
 
 | # | Task | Who |
 |---|---|---|
@@ -116,8 +116,9 @@ M4 only needs auth (M2), so if backend work gets tiring you can switch to M4 and
 | 7 | `GET /me/limits` | You |
 | 8 | OpenAPI generation + `/api/docs` + the CI "is it current" check | Claude |
 | 9 | Concurrency tests | You write them, Claude helps with `Promise.all` patterns |
+| 10 | Load test transfers and history with k6 on your laptop, then run `npm run db:reconcile`; record the numbers as a baseline in the docs | You, guided |
 
-**Done when:** every money test passes, including the concurrency ones, and `/api/docs` shows every endpoint.
+**Done when:** every money test passes, including the concurrency ones, `/api/docs` shows every endpoint, and the load test baseline is recorded with the ledger still reconciling to zero.
 
 ## M4. React foundations
 **2 to 3 weeks.** Goal: the frontend skeleton, and your React knowledge back.
@@ -161,8 +162,9 @@ M4 only needs auth (M2), so if backend work gets tiring you can switch to M4 and
 | 1 | Turnstile on signup and login (client widget + server check) | You |
 | 2 | Go through the security checklist | Together |
 | 3 | Check the history query uses its index (`EXPLAIN ANALYZE`) | You, guided |
-| 4 | README: live link, screenshots, architecture diagram, what you learned | You |
-| 5 | Share it | You |
+| 4 | Full-journey k6 load test (sign up, deposit, transfer, history) against a production build on your laptop, plus a Lighthouse check of the frontend | You, guided |
+| 5 | README: live link, screenshots, architecture diagram, what you learned | You |
+| 6 | Share it | You |
 
 **Done when:** every box in the [launch checklist](09-deployment.md#98-launch-checklist) is ticked.
 

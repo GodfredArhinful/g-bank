@@ -56,7 +56,7 @@ flowchart LR
 - **Start command:** `npm run db:migrate:prod && npm start`
   - Migrations run before the server starts. If one fails, the new version never goes live and the old one keeps running.
 - **Health check path:** `/api/v1/health`
-- **Auto-deploy:** "After CI checks pass."
+- **Auto-deploy:** Off. Deploys are started by the `deploy` job in `.github/workflows/ci.yml`, which runs on `main` only after the `check` job passes and calls Render's **deploy hook**: a secret URL stored as the GitHub secret `RENDER_DEPLOY_HOOK_URL`. The whole pipeline is readable in one file.
 - **Environment variables:** set in the Render dashboard, never in the repo.
 
 **Free tier facts to know:**
@@ -84,8 +84,8 @@ sequenceDiagram
 
     G->>GH: merge pull request into main
     GH->>CI: run lint, typecheck, tests, build
-    CI-->>GH: all green
-    GH->>R: main is ready to deploy
+    CI->>CI: check job passes
+    CI->>R: deploy job calls the deploy hook
     R->>R: npm ci and npm run build
     R->>N: run pending migrations
     R->>R: start new server version
