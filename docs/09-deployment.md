@@ -52,7 +52,7 @@ flowchart LR
 - **New Web Service** connected to the GitHub repo, runtime Node.
 - **Region:** the same region as your Neon database (for example, both in US East), so every query doesn't cross the country.
 - **Build command:** `npm ci --include=dev && npm run build`
-  - Render sets `NODE_ENV=production`, and `npm ci` then skips dev dependencies. Vite and TypeScript are dev dependencies, so without `--include=dev` the build fails.
+  - We set `NODE_ENV=production` on Render, and with that set, `npm ci` skips dev dependencies. Vite and TypeScript are dev dependencies, so without `--include=dev` the build fails.
 - **Start command:** `npm run db:migrate:prod && npm start`
   - Migrations run before the server starts. If one fails, the new version never goes live and the old one keeps running.
 - **Health check path:** `/api/v1/health`

@@ -111,7 +111,7 @@ flowchart LR
 ```
 bank-app/                   (rename to g-bank whenever you like)
 ├─ package.json             npm workspaces + root scripts
-├─ tsconfig.base.json       shared TypeScript settings
+├─ tsconfig.json            TypeScript settings for server + shared (web gets its own in M4)
 ├─ .env.example             every env var, with safe placeholder values
 ├─ .github/workflows/ci.yml
 ├─ docs/                    this plan
@@ -194,7 +194,7 @@ Latest versions checked on 2026-09-10. We pin exact versions when we install.
 | Area | Package | Version | Job |
 |---|---|---|---|
 | Runtime | Node.js | 24.x | Runs the server, including `.ts` files directly |
-| Language | TypeScript | 7.0 | Type checking (`tsc --noEmit`) |
+| Language | TypeScript | 6.0 | Type checking (`tsc --noEmit`). Not 7.0 yet: typescript-eslint only supports TypeScript below 6.1 |
 | Server | express | 5.2 | HTTP framework |
 | Server | zod | 4.6 | Validation + types (shared with web) |
 | Server | @asteasolutions/zod-to-openapi | 9.1 | Builds the OpenAPI document from Zod schemas |
@@ -216,7 +216,7 @@ Latest versions checked on 2026-09-10. We pin exact versions when we install.
 | Quality | eslint / prettier | 10.10 / 3.9 | Linting / formatting |
 
 Notes:
-- **Running TypeScript without a build step.** Node 24 can run `.ts` files by removing the types ("type stripping"). The catch is you can only use TypeScript features that simply delete away, so no `enum` and no `namespace`. `tsconfig` has `erasableSyntaxOnly` turned on to enforce this. **Risk to confirm in M0:** importing `.ts` files from the `shared` workspace. Fallback if it doesn't work: run the server with `tsx`.
+- **Running TypeScript without a build step.** Node 24 can run `.ts` files by removing the types ("type stripping"). The catch is you can only use TypeScript features that simply delete away, so no `enum` and no `namespace`. `tsconfig` has `erasableSyntaxOnly` turned on to enforce this. Importing `.ts` files from the `shared` workspace this way was tested on 2026-09-10 and works.
 - **argon2:** Node 24 has an experimental built-in `crypto.argon2`. We use the `argon2` package because it's proven and stable; switching later is a small change.
 
 ## 2.8 Cross-cutting helpers
