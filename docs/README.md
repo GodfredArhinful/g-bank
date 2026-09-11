@@ -45,7 +45,8 @@ Every big choice, why we made it, and what we turned down. If we change our mind
 | D15 | Bot protection | Cloudflare Turnstile on signup and login | Public forms attract bots; free | reCAPTCHA, nothing |
 | D16 | Finding a recipient | By 10-digit account number in v1 | Email lookup tells strangers who banks with G-Bank; we add it later with protections | Email, phone number |
 | D17 | Deploy timing | Deploy in Milestone 0, before there are features | Deployment problems show up early and small instead of all at once at the end | Deploy at the end |
+| D18 | TypeScript version | 6.0, not 7.0 | typescript-eslint (ESLint's TypeScript support) only works with TypeScript below 6.1. Revisit when it supports 7 | TypeScript 7.0 without type-aware linting |
 
 ## Status
 
-Planning done. Next: walk through the docs together, then start [Milestone 0](10-roadmap.md#m0-setup-and-walking-skeleton).
+Planning done. Next: [Milestone 0 step-by-step plan](plans/2026-09-10-m0-walking-skeleton.md).

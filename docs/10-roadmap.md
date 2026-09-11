@@ -47,15 +47,17 @@ M4 only needs auth (M2), so if backend work gets tiring you can switch to M4 and
 
 **You'll learn:** what a server is (requests, responses, ports), npm workspaces, environment variables, middleware, git branches and pull requests, CI.
 
+**Step-by-step plan:** [plans/2026-09-10-m0-walking-skeleton.md](plans/2026-09-10-m0-walking-skeleton.md)
+
 | # | Task | Who |
 |---|---|---|
-| 1 | Reshape the starter files into `server/`, `web/`, `shared/` workspaces | Claude sets up, you review |
+| 1 | Reshape the starter files into `server/` and `shared/` workspaces (`web/` arrives in M4) | Claude sets up, you review |
 | 2 | ESLint, Prettier, typecheck scripts | Claude |
 | 3 | `config.ts`: validate env vars with Zod | You, guided |
 | 4 | Split `app.ts` and `index.ts`; health route; request ID; pino logger | You write the route, Claude explains middleware |
 | 5 | `AppError` class + error handler with the standard error shape | You |
 | 6 | First test: `GET /health` with Vitest + Supertest | You |
-| 7 | GitHub repo, branch protection, first pull request | You, guided |
+| 7 | Branch protection and first pull request (the repo itself was created on 2026-09-10) | You, guided |
 | 8 | GitHub Actions CI | Claude writes it, you read it line by line |
 | 9 | Deploy to Render (no database yet) | You click, Claude guides |
 
