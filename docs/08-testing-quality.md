@@ -111,7 +111,9 @@ flowchart LR
 ## 8.6 Git workflow
 
 - `main` is always deployable. It's protected: changes only arrive through pull requests, and CI must pass.
-- One branch per task: `feat/transfers-api`, `fix/lockout-timer`, `docs/api-errors`, `chore/eslint`.
+- Every task starts as a **GitHub issue** in its milestone, labeled with who owns it (`owner: G` or `owner: Claude`).
+- One branch per issue, named `type/<issue number>-short-name`: `feat/9-config`, `fix/31-lockout-timer`, `docs/40-api-errors`, `chore/13-task-tracking`.
+- The PR description says **`Closes #9`** (the PR template has the line). Merging the PR then closes the issue and moves the milestone's progress bar.
 - Small pull requests (aim for under 300 changed lines). Easier to review, easier to undo.
 - Commit messages follow **Conventional Commits**: `feat: add transfer endpoint`, `fix: lock accounts in id order`.
 - Every PR description has: what changed and why, how it was tested, screenshots for UI changes, and a checklist (tests added, docs updated, no secrets).

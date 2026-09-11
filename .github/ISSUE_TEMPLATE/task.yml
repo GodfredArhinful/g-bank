@@ -1,0 +1,43 @@
+name: Task
+description: A piece of planned work, usually finished by one pull request.
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One or two sentences. What will be true when this is done?
+      placeholder: "`loadConfig()` validates env vars and stops the server with a clear message."
+    validations:
+      required: true
+  - type: input
+    id: plan
+    attributes:
+      label: Plan link
+      description: The section of the plan or docs this implements, if there is one.
+      placeholder: https://github.com/GodfredArhinful/g-bank/blob/main/docs/10-roadmap.md
+  - type: dropdown
+    id: owner
+    attributes:
+      label: Who writes it?
+      description: Also add the matching `owner:` label in the sidebar.
+      options:
+        - G
+        - Claude
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: A checklist. Each item should be easy to check off without arguing.
+      value: |
+        - [ ] Tests written first, watched failing, now passing
+        - [ ] `npm run check` passes
+        - [ ] The PR description says `Closes #<this issue number>`, and the PR is merged
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else. Questions, links, ideas.
