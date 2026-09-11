@@ -1,0 +1,17 @@
+{
+  "name": "@g-bank/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../.env src/index.ts",
+    "start": "node src/index.ts"
+  },
+  "dependencies": {
+    "@g-bank/shared": "*",
+    "express": "^5.2.1",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "zod": "^4.6.2"
+  }
+}
