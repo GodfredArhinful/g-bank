@@ -46,6 +46,8 @@ Every big choice, why we made it, and what we turned down. If we change our mind
 | D16 | Finding a recipient | By 10-digit account number in v1 | Email lookup tells strangers who banks with G-Bank; we add it later with protections | Email, phone number |
 | D17 | Deploy timing | Deploy in Milestone 0, before there are features | Deployment problems show up early and small instead of all at once at the end | Deploy at the end |
 | D18 | TypeScript version | 6.0, not 7.0 | typescript-eslint (ESLint's TypeScript support) only works with TypeScript below 6.1. Revisit when it supports 7 | TypeScript 7.0 without type-aware linting |
+| D19 | Load testing | k6, run on your laptop at the end of M3 and in M6, followed by a ledger reconciliation | Proves the money rules hold under pressure and gives a performance baseline. Free Render and Neon tiers are too small to measure our code | No load testing, testing against production |
+| D20 | Continuous deployment | A `deploy` job in `ci.yml` that runs on `main` after `check` passes and calls Render's deploy hook; Render auto-deploy off | The whole pipeline from merge to live is in one file you can read and review | Render's built-in "After CI Checks Pass" auto-deploy |
 
 ## Status
 

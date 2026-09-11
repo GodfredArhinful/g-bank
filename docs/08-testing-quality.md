@@ -8,6 +8,7 @@
 | API integration | Vitest + Supertest + a real Postgres test database | Every endpoint: happy path, validation, auth, business rules, concurrency | **Most** |
 | Component | Vitest + React Testing Library | The tricky UI: money input, the transfer flow | Some |
 | End-to-end | Playwright | Sign up, deposit, transfer, log out in a real browser | Stretch goal |
+| Load | k6 | Many simulated users at once (transfers, history, login), with pass/fail thresholds on p95 latency and error rate. Run on your laptop, then reconcile the ledger | End of M3 and M6 |
 
 **Why test against a real database instead of a fake one?** The bugs that matter most here (locks, constraints, all-or-nothing transactions) live inside Postgres. A fake database would happily pass tests that the real one fails in production.
 
@@ -98,6 +99,8 @@ flowchart LR
 ```
 
 "Check OpenAPI is current" regenerates `openapi.json` from the Zod schemas and fails if it differs from the committed file. The docs can't silently drift from the code.
+
+**The CD half:** on `main` only, a second job called `deploy` runs after `check` passes and calls Render's deploy hook (see [Deployment](09-deployment.md#94-render-setup)). Pull requests run `check` but never `deploy`.
 
 ## 8.6 Git workflow
 

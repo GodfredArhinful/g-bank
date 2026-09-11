@@ -44,7 +44,7 @@ bank-app/
 ├─ .prettierignore                                                          (Task 1)
 ├─ .env.example                 every env var with safe values              (Task 1)
 ├─ .github/
-│  ├─ workflows/ci.yml          runs checks on every push and PR            (Task 2)
+│  ├─ workflows/ci.yml          checks on every push and PR, deploys main   (Task 2, deploy job in Task 6)
 │  └─ pull_request_template.md                                              (Task 2)
 ├─ shared/
 │  ├─ package.json              name: @g-bank/shared                        (Task 1)
@@ -1094,9 +1094,12 @@ When green: squash and merge, then `git switch main && git pull`.
 
 **Owner:** G, guided (clicking through Render's dashboard).
 
-**Concept.** Render runs our server on its own computers. On every merge to `main` it pulls the code, runs the **build command**, then the **start command**, then calls our **health check** URL. Only when that answers `200` does the new version get traffic. Render tells the app which port to use through the `PORT` environment variable, which `loadConfig` already reads.
+**Concept.** Render runs our server on its own computers. Each deploy pulls the code, runs the **build command**, then the **start command**, then calls our **health check** URL. Only when that answers `200` does the new version get traffic. Render tells the app which port to use through the `PORT` environment variable, which `loadConfig` already reads.
+
+This task also builds the **CD** half of CI/CD (decision D20): a `deploy` job in `ci.yml` that runs only on `main`, only after `check` passes, and tells Render to deploy by calling a secret **deploy hook** URL. From then on, the whole path from merge to live is written down in one file you can read and review.
 
 **Files:**
+- Modify: `.github/workflows/ci.yml` (add the `deploy` job)
 - Modify: `docs/README.md` (add the live URL to **Status**)
 
 **Interfaces:**
@@ -1117,7 +1120,7 @@ Sign up at render.com with your GitHub account. Then **New → Web Service**, pi
 | Instance type | Free |
 | Environment variables | `NODE_ENV` = `production`, `LOG_LEVEL` = `info` |
 | Advanced → Health check path | `/api/v1/health` |
-| Advanced → Auto-Deploy | After CI Checks Pass |
+| Advanced → Auto-Deploy | Off (our `deploy` job starts deploys) |
 
 Click **Create Web Service**.
 
@@ -1132,11 +1135,41 @@ curl -i https://g-bank.onrender.com/api/v1/health
 ```
 (Use your real service name.) Expected: `HTTP/2 200`, an `x-request-id` header, and `{"status":"ok"}`. If the service was asleep, the first call can take up to a minute.
 
-- [ ] **Step 4: Record the live URL**
+- [ ] **Step 4: Store the deploy hook as a GitHub secret**
+
+In Render: your service → **Settings** → **Deploy Hook** → copy the URL. Treat it like a password: anyone with it can trigger deploys.
+
+In GitHub: repo **Settings** → **Secrets and variables** → **Actions** → **New repository secret**. Name: `RENDER_DEPLOY_HOOK_URL`. Value: the URL you copied. Paste it only there, never in a file or a chat.
+
+- [ ] **Step 5: Add the deploy job and the live URL**
 
 ```bash
-git switch -c docs/live-url
+git switch -c feat/cd
 ```
+
+Add this job to the end of `.github/workflows/ci.yml`, indented under `jobs:` at the same level as `check:`:
+
+```yaml
+  deploy:
+    name: Deploy to Render
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: Trigger Render deploy
+        run: curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_URL"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+```
+
+What each new line does:
+- `needs: check`: waits for the `check` job, and never runs if it failed.
+- `if: ...`: only runs for pushes to `main`, so pull requests check but don't deploy.
+- `concurrency`: if two merges land close together, the deploys wait in line instead of overlapping.
+- `curl --fail`: the job fails if Render rejects the request, so a broken deploy hook shows up as a red X.
 
 In `docs/README.md`, add this line at the end of the **Status** section (with your real URL):
 
@@ -1144,18 +1177,26 @@ In `docs/README.md`, add this line at the end of the **Status** section (with yo
 Live: https://g-bank.onrender.com/api/v1/health
 ```
 
+Run: `npm run format:check`
+Expected: `All matched files use Prettier code style!`
+
 ```bash
-git add docs/README.md
-git commit -m "docs: add live URL"
-git push -u origin docs/live-url
+git add .github docs/README.md
+git commit -m "feat: deploy to Render from CI after checks pass"
+git push -u origin feat/cd
 gh pr create --fill
 gh pr checks --watch
 ```
-When green: squash and merge. That merge triggers CI on `main`, and then Render deploys automatically. Watch it happen in the Render dashboard.
+Expected on the PR: `Lint, typecheck, test` passes, and `Deploy to Render` shows as **skipped**, because this is a pull request, not a push to `main`.
+
+- [ ] **Step 6: Merge and watch the whole pipeline**
+
+Squash and merge. Then open the repo's **Actions** tab: the run on `main` shows `Lint, typecheck, test`, then `Deploy to Render`. In the Render dashboard a new deploy starts a few seconds later. When it's live, run the `curl` from Step 3 again.
 
 **Check yourself**
 1. Render sets `PORT=10000`. Trace how that number reaches `app.listen`.
 2. Why is the build command `npm ci --include=dev` and not plain `npm ci`, given that we set `NODE_ENV=production`?
+3. What does `needs: check` guarantee, and why does `Deploy to Render` show as skipped on pull requests?
 
 ---
 
@@ -1163,6 +1204,7 @@ When green: squash and merge. That merge triggers CI on `main`, and then Render 
 
 - [ ] `https://<your-service>.onrender.com/api/v1/health` returns `{"status":"ok"}`
 - [ ] CI is green on `main`, and `main` is protected by the ruleset
-- [ ] Six PRs merged: workspace, CI, config, health check, error handling, live URL
+- [ ] Six PRs merged: workspace, CI, config, health check, error handling, deploy job with live URL
+- [ ] Merging a PR deploys automatically: the Actions run on `main` shows `Lint, typecheck, test`, then `Deploy to Render`
 - [ ] `npm test` shows 15 passing tests
 - [ ] You can explain, without looking: the middleware chain, why `createApp` is separate from `index.ts`, and what happens between clicking **Merge** and the new version being live
