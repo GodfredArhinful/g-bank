@@ -20,3 +20,17 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+
+  deploy:
+    name: Deploy to Render
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: Trigger Render deploy
+        run: curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_URL"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
