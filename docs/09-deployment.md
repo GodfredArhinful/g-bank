@@ -53,7 +53,7 @@ flowchart LR
 - **Region:** the same region as your Neon database (for example, both in US East), so every query doesn't cross the country.
 - **Build command:** `npm ci --include=dev && npm run build`
   - We set `NODE_ENV=production` on Render, and with that set, `npm ci` skips dev dependencies. Vite and TypeScript are dev dependencies, so without `--include=dev` the build fails.
-- **Start command:** `npm run db:migrate:prod && npm start`
+- **Start command:** `npm run db:migrate && npm start`
   - Migrations run before the server starts. If one fails, the new version never goes live and the old one keeps running.
 - **Health check path:** `/api/v1/health`
 - **Auto-deploy:** Off. Deploys are started by the `deploy` job in `.github/workflows/ci.yml`, which runs on `main` only after the `check` job passes and calls Render's **deploy hook**: a secret URL stored as the GitHub secret `RENDER_DEPLOY_HOOK_URL`. The whole pipeline is readable in one file.
