@@ -8,11 +8,11 @@
 
 **Architecture:** Drizzle defines the tables in TypeScript (`server/src/db/schema.ts`) and generates SQL migration files that are committed and applied everywhere with one command. Services are plain functions that take the database as their first argument and plain data as the second, run inside one database transaction with row locks, and return the API shapes from the contract. Tests run against `gbank_test` on your laptop and a Postgres container in CI; every test starts from a clean, seeded bank and ends with a ledger reconciliation.
 
-**Tech Stack:** Postgres 17 (Postgres.app locally, a `postgres:17` container in CI, Neon in production), drizzle-orm 0.45, drizzle-kit 0.31, pg 8.23, plus everything from M0.
+**Tech Stack:** Postgres 18 (Postgres.app locally, a `postgres:18` container in CI, Neon in production), drizzle-orm 0.45, drizzle-kit 0.31, pg 8.23, plus everything from M0.
 
 **Spec:** [docs/10-roadmap.md, M1](../10-roadmap.md#m1-database-and-ledger-core), with details from [03-database.md](../03-database.md), [06-money-movement.md](../06-money-movement.md) (sections 6.7 and 6.9), [04-api.md](../04-api.md#46-shared-objects), [08-testing-quality.md](../08-testing-quality.md#82-test-setup), and [09-deployment.md](../09-deployment.md#95-neon-setup).
 
-**Verified:** not yet against a live database. There is no Postgres on this machine until Task 1 installs Postgres.app. Right after Task 1, Claude runs every file in this plan in a scratch copy against `gbank_test` and fixes anything that differs before Task 2 starts. The Drizzle API calls used here (`check`, `pgEnum`, `generatedAlwaysAsIdentity`, `.for("update")`, `onConflictDoNothing`, `db.$client`, `DrizzleQueryError.cause`) were confirmed against the installed drizzle-orm 0.45.2 source on 2026-09-16.
+**Verified:** every code block in Tasks 2 to 6 was built and run in a scratch copy on 2026-09-16 against Postgres 18.6 (Postgres.app): format, lint, typecheck, and tests pass at every task boundary (22, 26, 30, 44, and 46 tests), `npm run db:migrate`, `db:seed`, and `db:reconcile` work, and the running server answered `/health/ready` with 200, and with 503 when pointed at a dead database URL. The Neon and Render dashboard steps in Task 6 were not exercised.
 
 ## Global Constraints
 
@@ -32,6 +32,8 @@ Same as M0: **Owner: G** tasks start with a **Concept** section, give the tests 
 
 **Issues (decision D21):** Task 1 = #19, Task 2 = #20, Task 3 = #21, Task 4 = #22, Task 5 = #23, Task 6 = #24. Branch names and commit commands below use those numbers.
 
+**Formatting:** some code blocks in this plan are wider than Prettier's 100-column limit. Run `npm run format` before `npm run check` at the end of each task; the commit hook does the same for staged files, so what lands in git is always formatted.
+
 **Suggested sessions:** Session 1 = Task 1 (mostly clicking and typing SQL). Session 2 = Task 2. Session 3 = Tasks 3 and 4. Session 4 = Task 5 (the biggest). Session 5 = Task 6.
 
 **Decisions made by this plan** (added to the decision log in `docs/README.md`):
@@ -45,7 +47,7 @@ Same as M0: **Owner: G** tasks start with a **Concept** section, give the tests 
 ```
 g-bank/
 ├─ vitest.config.ts                  two projects: shared (no DB) and server (DB harness)   (Task 2)
-├─ .github/workflows/ci.yml          + postgres:17 service and TEST_DATABASE_URL             (Task 2)
+├─ .github/workflows/ci.yml          + postgres:18 service and TEST_DATABASE_URL             (Task 2)
 ├─ .env.example                      + DATABASE_URL, TEST_DATABASE_URL                       (Task 2)
 ├─ docs/labs/m1-sql-lab.md           the psql exercises, with G's notes                      (Task 1)
 ├─ shared/src/schemas/accounts.ts    Account, AccountType, AccountStatus                     (Task 5)
@@ -103,7 +105,7 @@ Test count: 15 after M0, 22 after Task 2 (6 new, 1 new config test), 26 after Ta
 
 - [ ] **Step 1: Install Postgres.app**
 
-Download the Postgres 17 build from https://postgresapp.com (the "Latest release" download includes 17). Move it to Applications, open it, click **Initialize**. An elephant icon appears in the menu bar. Green means running.
+Download the latest release from https://postgresapp.com (Postgres 18 at the time of writing). Move it to Applications, open it, click **Initialize**. An elephant icon appears in the menu bar. Green means running.
 
 Add the command-line tools to your PATH (this is what the app's docs say to do):
 
@@ -117,7 +119,7 @@ Open a **new** terminal tab (PATH changes only apply to new shells), then:
 psql --version
 ```
 
-Expected: `psql (PostgreSQL) 17.x`.
+Expected: `psql (PostgreSQL) 18.6 (Postgres.app)`. Any 18.x is fine.
 
 - [ ] **Step 2: Create the two databases**
 
@@ -198,6 +200,8 @@ git switch main && git pull && git switch -c feat/20-schema
 npm install -w @g-bank/server drizzle-orm@^0.45.2 pg@^8.23.0
 npm install -D drizzle-kit@^0.31.10 @types/pg@^8.23.1
 ```
+
+npm ends with `4 moderate severity vulnerabilities` and suggests `npm audit fix --force`. Don't run it: it would downgrade drizzle-kit to an ancient version. The warning is about a build tool drizzle-kit uses internally, not code that runs in G-Bank.
 
 - [ ] **Step 3: Config and env (Claude)**
 
@@ -281,6 +285,12 @@ Root `package.json`, add to `scripts` (the trailing `--` lets `npm run db:genera
 ```json
     "db:generate": "npm run db:generate -w @g-bank/server --",
     "db:migrate": "npm run db:migrate -w @g-bank/server"
+```
+
+`.prettierignore`, add one line. Migration files are never edited after they run, and drizzle-kit rewrites its `meta/*.json` in its own style on every generate, so Prettier must leave that folder alone:
+
+```
+server/src/db/migrations/
 ```
 
 - [ ] **Step 5: Write the failing test (Claude writes the file, G reads it)**
@@ -526,7 +536,7 @@ export function isUniqueViolation(err: unknown): boolean {
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -549,7 +559,7 @@ export function isUniqueViolation(err: unknown): boolean {
 npx vitest run server/test/db/schema.test.ts
 ```
 
-Expected: FAIL with `Cannot find module '../../src/db/schema.ts'`.
+Expected: `No test files found` plus an Unhandled Error: `Failed to load url ../src/db/migrate.ts ... in server/test/globalSetup.ts. Does the file exist?`. The global setup runs before any test file and needs the migration runner (Step 8) and the schema (Step 9). After Step 8 the same error moves to `./schema.ts ... in server/src/db/client.ts`. Only once the schema exists does Vitest reach the test file.
 
 - [ ] **Step 8: Client and migration runner (Claude)**
 
@@ -755,7 +765,7 @@ export const entries = pgTable(
 npm run db:generate
 ```
 
-drizzle-kit writes `server/src/db/migrations/0000_<two-random-words>.sql` and a `meta/` folder next to it. Open the `.sql` file. It's the `CREATE TABLE` statements for your schema, in Postgres's words. Read every `CONSTRAINT` line and match it to the table in 03-database.md. If something's missing or wrong, fix `schema.ts`, delete the generated `.sql` file **and** the `meta/` folder (nothing has run anywhere yet, so this is the one time deleting is allowed), and generate again.
+drizzle-kit writes `server/src/db/migrations/0000_<random-words>.sql` and a `meta/` folder next to it. Open the `.sql` file. It's the `CREATE TABLE` statements for your schema, in Postgres's words. Read every `CONSTRAINT` line and match it to the table in 03-database.md. If something's missing or wrong, fix `schema.ts`, delete the generated `.sql` file **and** the `meta/` folder (nothing has run anywhere yet, so this is the one time deleting is allowed), and generate again.
 
 - [ ] **Step 11: Apply it to your dev database (G)**
 
@@ -782,7 +792,7 @@ Expected: `Tests  6 passed (6)`. The global setup applied the same migration to 
 - [ ] **Step 13: Full check, commit, PR (G)**
 
 ```bash
-npm run check
+npm run format && npm run check
 ```
 
 Expected: 22 tests passing.
@@ -908,7 +918,7 @@ Expected: the first three fail with `Expected the query to fail, but it succeede
 npm run db:generate -- --custom --name=append_only_ledger
 ```
 
-Expected: a new file `server/src/db/migrations/0001_append_only_ledger.sql` containing only a comment, plus an updated `meta/_journal.json`.
+Expected: a new file `server/src/db/migrations/0001_append_only_ledger.sql` containing only a comment, plus an updated `meta/_journal.json` and a new `meta/0001_snapshot.json`. Commit all three.
 
 - [ ] **Step 5: Write the trigger yourself**
 
@@ -942,18 +952,14 @@ npm run db:migrate
 npx vitest run server/test/db/appendOnly.test.ts
 ```
 
-Expected: `Tests  4 passed (4)`. Then try it by hand, to feel it:
+Expected: `Tests  4 passed (4)`.
 
-```bash
-psql gbank_dev -c "UPDATE entries SET amount_cents = 1"
-```
-
-Expected: `ERROR:  ledger rows are append-only (UPDATE on entries)`. (There are no rows yet, but `BEFORE ... FOR EACH ROW` only fires per row, so this may report `UPDATE 0` instead. Either way the tests prove it.)
+You can't see it by hand yet: `gbank_dev` has no ledger rows, and a row trigger only fires per row, so `UPDATE entries SET amount_cents = 1` just reports `UPDATE 0`. The tests are the proof. After Task 5, once you've made a deposit through the service, run `psql gbank_dev -c "DELETE FROM entries"` and enjoy the refusal.
 
 - [ ] **Step 7: Full check, commit, PR**
 
 ```bash
-npm run check
+npm run format && npm run check
 git add -A
 git commit -m "feat: make ledger tables append-only with a trigger" -m "Closes #21"
 git push -u origin feat/21-append-only
@@ -1257,7 +1263,7 @@ npm run db:reconcile
 Expected: the funding account is created in `gbank_dev`, and `Ledger OK: ...`.
 
 ```bash
-npm run check
+npm run format && npm run check
 ```
 
 Expected: 30 tests, and every server test now ends with a reconciliation.
@@ -1835,12 +1841,12 @@ npx vitest run server/test/modules
 
 Expected: `Tests  13 passed (13)`. If the ten-deposits test fails with a balance under 1000, the lock is missing or not on the right rows.
 
-Then remove `.for("update")` from `createDeposit`, run the deposits file again, and watch the last test fail. Put it back. That's the whole lesson of M1 in one command.
+Then remove `.for("update")` from `createDeposit`, run the deposits file again, and watch the last test fail. Vitest reports that one test twice: once for the balance assertion (`expected 200 to be 1000`, or some other number under 1000) and once more because the after-test ledger check finds a cached balance that doesn't match the entries. Same bug, two detectors. Put `.for("update")` back. That's the whole lesson of M1 in one command.
 
 - [ ] **Step 10: Full check, commit, PR**
 
 ```bash
-npm run check
+npm run format && npm run check
 git add -A
 git commit -m "feat: open accounts and record deposits in the ledger" -m "Closes #23"
 git push -u origin feat/23-services
@@ -2035,7 +2041,7 @@ Expected: `200` and `{"status":"ok"}`. Now quit Postgres.app from the menu bar a
 - [ ] **Step 6: Create the Neon project (G)**
 
 1. Go to https://neon.tech, sign up with GitHub.
-2. **New project.** Name `g-bank`. Postgres version **17** (same as your laptop). Region: the AWS region closest to your Render service (Render Oregon = AWS US West (Oregon); Render Ohio = AWS US East (Ohio)).
+2. **New project.** Name `g-bank`. Postgres version **18** (same as your laptop; `psql --version` shows it). Region: the AWS region closest to your Render service (Render Oregon = AWS US West (Oregon); Render Ohio = AWS US East (Ohio)).
 3. On the project dashboard click **Connect**. You'll see a connection string. Copy it twice, once with the **Connection pooling** switch on (the host contains `-pooler`) and once with it off. Both start with `postgresql://` and end with `?sslmode=require&channel_binding=require`.
 4. Optional but better: in both strings, change `sslmode=require` to `sslmode=verify-full`. With `require`, the `pg` driver encrypts but doesn't verify the server's certificate; `verify-full` does, and Neon's certificate is signed by a public authority Node already trusts.
 
