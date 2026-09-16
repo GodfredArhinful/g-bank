@@ -54,3 +54,5 @@ Every big choice, why we made it, and what we turned down. If we change our mind
 ## Status
 
 Planning done. Next: [Milestone 0 step-by-step plan](plans/2026-09-10-m0-walking-skeleton.md).
+
+Live: https://g-bank.onrender.com/api/v1/health
