@@ -50,9 +50,12 @@ Every big choice, why we made it, and what we turned down. If we change our mind
 | D20 | Continuous deployment | A `deploy` job in `ci.yml` that runs on `main` after `check` passes and calls Render's deploy hook; Render auto-deploy off | The whole pipeline from merge to live is in one file you can read and review | Render's built-in "After CI Checks Pass" auto-deploy |
 | D21 | Task tracking | One GitHub issue per task; branch names start with the issue number (`feat/9-config`); PR descriptions say `Closes #9` | Merging closes the issue and moves the milestone's progress bar automatically. The same habit as Jira ticket numbers in branch names | Task IDs typed into PR titles, PR numbers alone, Jira |
 | D22 | Local checks | Husky + lint-staged: pre-commit fixes and lints staged files, pre-push runs typecheck and tests; `npm run check` runs everything | Problems show up on your laptop in seconds instead of in CI minutes later. CI still blocks merging, because hooks can be skipped | No hooks, Lefthook, simple-git-hooks |
+| D23 | Users table timing | The `users` table is created in M1, before auth exists | `accounts.user_id` and `transactions.initiated_by` point at it; tests insert users directly with a placeholder hash until M2 | Fake owner IDs in M1, then a migration to add the foreign keys later |
+| D24 | Migrations everywhere | One `npm run db:migrate` command applies migrations and then makes sure the funding account exists; Render's start command runs it before `npm start` | Laptop, test, and Neon databases are set up the same way with one command, and a failed migration stops a deploy before the new server starts | Separate `db:migrate:prod`, seeding by hand, migrations at app startup |
+| D25 | Service signature | Services take the database as their first argument: `createDeposit(db, input)` | Tests pass the test database, the app passes the pool built from `DATABASE_URL`, and no module holds a global connection | A global `db` import, a class with a constructor |
 
 ## Status
 
-Planning done. Next: [Milestone 0 step-by-step plan](plans/2026-09-10-m0-walking-skeleton.md).
+Milestone 0 is done: the API is live on Render with CI/CD. Next: [Milestone 1 step-by-step plan](plans/2026-09-16-m1-database-and-ledger.md) (database and ledger).
 
 Live: https://g-bank.onrender.com/api/v1/health
