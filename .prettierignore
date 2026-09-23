@@ -1,3 +1,4 @@
 .claude/
 docs/
 package-lock.json
+server/src/db/migrations/

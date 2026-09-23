@@ -4,7 +4,7 @@ import { pino } from "pino";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.ts";
-import { loadConfig } from "../src/config.ts";
+import { testConfig } from "./helpers/config.ts";
 import { AppError } from "../src/lib/errors.ts";
 import { createErrorHandler, notFound } from "../src/middleware/errorHandler.ts";
 import { requestId } from "../src/middleware/requestId.ts";
@@ -60,7 +60,7 @@ describe("error handling", () => {
 
 describe("the real app", () => {
   it("answers unknown API routes in the standard error shape", async () => {
-    const app = createApp(loadConfig({ LOG_LEVEL: "silent" }));
+    const app = createApp(testConfig);
     const res = await request(app).get("/api/v1/nope");
     expect(res.status).toBe(404);
     expect(ErrorResponse.parse(res.body).error.code).toBe("not_found");

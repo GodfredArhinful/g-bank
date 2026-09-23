@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../.env src/index.ts",
-    "start": "node src/index.ts"
+    "start": "node src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file-if-exists=../.env src/db/migrate.ts"
   },
   "dependencies": {
     "@g-bank/shared": "*",
+    "drizzle-orm": "^0.45.3",
     "express": "^5.2.1",
+    "pg": "^8.23.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "zod": "^4.6.2"
