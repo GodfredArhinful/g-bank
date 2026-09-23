@@ -238,14 +238,14 @@ dropdb gbank_lab
 
 ## My notes
 
-Fill this in as you go. One or two lines each is plenty. This is what gets reviewed in your Task 1 pull request.
+Written up by Claude from the session on 2026-09-22. G ran every exercise in `psql` (with a few detours into the wrong prompt, see the last item); the outputs below are what actually came back.
 
-- **Q1** (constraints on `pets`):
-- **Q2** (predicted vs actual counts):
-- **Q3** (what `WHERE` protected):
-- **Q4** (`WHERE` vs `HAVING`):
-- **Q5** (the four errors, constraint name and kind):
-- **Q6** (`ROLLBACK`):
-- **Q7** (two transfers, no lock):
-- **Q8** (negative funding balance):
-- **Something that surprised me:**
+- **Q1** (constraints on `pets`): three, plus the primary key. `pets_kind_check` only allows dog, cat, or fish. `pets_weight_kg_check` refuses a weight of 0 or less. `pets_owner_id_fkey` refuses an `owner_id` that doesn't exist in `owners`. Postgres invented the names; in G-Bank we'll name ours.
+- **Q2** (predicted vs actual counts): 4 rows, 2 dogs (Bella, Rex), 2 pets over 10 kg (Rex 30, Bella 22).
+- **Q3** (what `WHERE` protected): with `WHERE name = 'Rex'` the reply was `UPDATE 1`. Without it, `UPDATE 4`, and the fish weighed 31 kg. The `WHERE` is the only thing that limits a change to the rows you meant. That's why G-Bank's ledger tables will refuse `UPDATE` entirely (Task 3).
+- **Q4** (`WHERE` vs `HAVING`): `WHERE` filters rows before they're grouped, so it can't see a `SUM`. `HAVING` filters after grouping, once each group's sum exists.
+- **Q5** (the four errors, constraint name and kind): `pets_kind_check` (CHECK) for the dragon; `owners_email_key` (UNIQUE) for the second alice@example.com; `pets_owner_id_fkey` (FOREIGN KEY) for owner 999; `pets_weight_kg_check` (CHECK) for -1 kg. Each error names the constraint and shows the failing row.
+- **Q6** (`ROLLBACK`): inside `BEGIN`, the count after `DELETE` was 0; after `ROLLBACK` it was 4 again. The delete never became real: a transaction is a draft that only becomes permanent on `COMMIT`. The property is atomicity, the A in ACID.
+- **Q7** (two transfers, no lock): both would read the same balance, both would see enough money, and both would write, so the account could go negative or the second write would overwrite the first. `FOR UPDATE` made terminal B wait until terminal A committed, so the second transfer sees the balance the first one left behind. A race becomes a queue.
+- **Q8** (negative funding balance): funding sits at -10000 because every deposit is written as "funding gives, customer receives". Its negative balance is exactly how much fake money the bank has issued, and the total across all accounts stays 0. System accounts are the only ones allowed below zero. Planting a one-sided transaction (tx 3, -700) and running the `GROUP BY tx HAVING SUM(amount_cents) <> 0` query found it in one row.
+- **Something that surprised me:** how much time went to the prompt itself. `%` means the shell, `gbank_lab=#` means psql, and `gbank_lab-#` or `gbank_lab(#` means psql is still waiting for a `;`. Typing `clear` into psql piled up into one unfinished statement until Ctrl+C. Database names use underscores, not hyphens: `gbank_lab`, not `gbank-lab`.
