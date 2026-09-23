@@ -2,9 +2,9 @@ import { HealthResponse } from "@g-bank/shared";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.ts";
-import { loadConfig } from "../src/config.ts";
+import { testConfig } from "./helpers/config.ts";
 
-const app = createApp(loadConfig({ LOG_LEVEL: "silent" }));
+const app = createApp(testConfig);
 
 describe("GET /api/v1/health", () => {
   it("says the server is up", async () => {
